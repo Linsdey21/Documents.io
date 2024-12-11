@@ -1,37 +1,33 @@
-name: Generate Documentation
+name: Build and Test
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
+    name: Build and Test Project
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      # Проверить репозиторий
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Install Doxygen
-      run: sudo apt-get install -y doxygen
+      # Установить необходимые зависимости
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ cmake doxygen graphviz
 
-    - name: Generate Doxygen documentation
-      run: doxygen Doxyfile
-
-    - name: Create gh-pages branch (if not exists)
-      run: |
-        if ! git ls-remote --exit-code origin gh-pages; then
-          git checkout --orphan gh-pages
-          git reset --hard
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git commit --allow-empty -m "Initialize gh-pages branch"
-          git push origin gh-pages
-        fi
-
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/html
+      # Собрать проект
+      - name: Build project
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make
